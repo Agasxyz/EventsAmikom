@@ -4,13 +4,20 @@
 @section('page_subtitle', 'Buat dan atur acara seru Anda di sini.')
 
 @section('content')
-<div class="mb-4 text-right">
-    <a href="{{ route('admin.events.create') }}" class="inline-block px-6 py-3
+<header class="flex justify-between items-center mb-10">
+    <div>
+        <h1 class="text-3xl font-black">Kelola Events</h1>
+        <p class="text-slate-500 font-medium">Buat dan atur acara seru Anda di sini.</p>
+    </div>
+    <div class="mb-4 text-right">
+        <a href="{{ route('admin.events.create') }}" class="inline-block px-6 py-3
 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-100
 hover:bg-indigo-700 active:scale-95 transition">
-        + Tambah Event Baru
-    </a>
-</div>
+            + Tambah Event Baru
+        </a>
+    </div>
+</header>
+
 
 <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm
 overflow-hidden">
@@ -83,16 +90,13 @@ transition">
                             </form>
                             <a href="{{ route('admin.events.edit', $event->id) }}" class="p-2.5 bg-indigo-50
 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition">
-<svg class="w-5 h-5" fill="none"
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
-stroke="currentColor" viewBox="0 0 24 24">
-
-<path stroke-linecap="round"
-stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 00-2
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 00-2
 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828
 15H9v-2.828l8.586-8.586z"></path>
-</svg>
-</a>
+                                </svg>
+                            </a>
                         </div>
                     </td>
                 </tr>
