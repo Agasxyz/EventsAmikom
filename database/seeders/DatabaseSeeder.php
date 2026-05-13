@@ -21,10 +21,12 @@ class DatabaseSeeder extends Seeder
             'name' => 'Seminar IT',
             'slug' => 'seminar-it',
         ]);
+
         $category2 = \App\Models\Category::firstOrCreate([
             'name' => 'Entertaiment',
             'slug' => 'entertaiment',
         ]);
+
         $category3 = \App\Models\Category::firstOrCreate([
             'name' => 'Workshop',
             'slug' => 'workshop',
@@ -96,5 +98,8 @@ class DatabaseSeeder extends Seeder
             'stock' => 100,
             'poster_path' => 'posters/event-6.png',
         ]);
+
+        // 4. Jalankan Seeder Partner
+        $this->call(PartnerSeeder::class);
     }
 }

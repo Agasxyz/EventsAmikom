@@ -8,10 +8,8 @@ use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
 use App\Http\Controllers\Admin\EventController as EventAdminController;
+use App\Http\Controllers\PartnerController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
 Route::get('/profil', function () {
     return view('profil');
@@ -55,3 +53,8 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::resource('events', EventAdminController::class);
     });
+
+    Route::get('/admin/partners', [PartnerController::class, 'index']);
+    Route::post('/admin/partners', [PartnerController::class, 'store']);
+
+    Route::get('/admin/partners/create', [PartnerController::class, 'create']);

@@ -97,4 +97,36 @@
         @endforeach
 
 </section>
+
+<!-- Partners Section -->
+<section class="max-w-7xl mx-auto px-6 py-20">
+
+    <div class="text-center mb-12">
+        <h2 class="text-3xl font-extrabold mb-2">Partner Kami</h2>
+        <p class="text-slate-500 font-medium">
+            Didukung oleh berbagai perusahaan dan komunitas terpercaya
+        </p>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+
+    @foreach($partners as $partner)
+
+        <div class="bg-white border border-slate-100 shadow-sm rounded-2xl h-32 flex items-center justify-center hover:shadow-lg transition">
+
+            <div class="w-full h-full flex items-center justify-center">
+                <img
+                    src="{{ $partner->logo_url }}"
+                    alt="{{ $partner->name }}"
+                    class="max-h-14 max-w-[80%] object-contain"
+                >
+            </div>
+
+        </div>
+
+    @endforeach
+
+</div>
+
+</section>
 @endsection
