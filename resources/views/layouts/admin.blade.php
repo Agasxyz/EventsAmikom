@@ -41,7 +41,7 @@ text-indigo-400 mb-4 px-2">Main Menu</p>
 gap-3 px-4 py-3 {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-800
 text-white' : 'hover:bg-indigo-800' }} rounded-xl font-bold transition">
                 <svg class="w-5 h-5 {{ request()->routeIs('admin.dashboard') ?
-'text-indigo-300' : 'text-indigo-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    'text-indigo-300' : 'text-indigo-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0
 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4
@@ -55,7 +55,7 @@ text-white' : 'hover:bg-indigo-800' }} rounded-xl font-bold transition">
 gap-3 px-4 py-3 {{ request()->routeIs('admin.events.*') ? 'bg-indigo-800
 text-white' : 'hover:bg-indigo-800' }} rounded-xl font-bold transition">
                 <svg class="w-5 h-5 {{ request()->routeIs('admin.events.*') ?
-'text-indigo-300' : 'text-indigo-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    'text-indigo-300' : 'text-indigo-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2
 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -63,32 +63,52 @@ text-white' : 'hover:bg-indigo-800' }} rounded-xl font-bold transition">
                 </svg>
                 Kelola Event
             </a>
+
+            <a href="{{ url('/admin/partners') }}"
+                class="flex items-center gap-3 px-4 py-3 {{ request()->is('admin/partners*') ? 'bg-indigo-800 text-white' : 'hover:bg-indigo-800' }} rounded-xl font-bold transition">
+
+                <svg class="w-5 h-5 {{ request()->is('admin/partners*') ? 'text-indigo-300' : 'text-indigo-400' }}"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5-2.236M9 20H4v-2a3 3 0 015-2.236m6-3.764a4 4 0 10-8 0 4 4 0 008 0z">
+                    </path>
+
+                </svg>
+
+                Kelola Partner
+            </a>
+
+            <a href="{{ url('/admin/categories') }}"
+                class="flex items-center gap-3 px-4 py-3 {{ request()->is('admin/categories*') ? 'bg-indigo-800 text-white' : 'hover:bg-indigo-800' }} rounded-xl font-bold transition">
+
+                <svg class="w-5 h-5 {{ request()->is('admin/categories*') ? 'text-indigo-300' : 'text-indigo-400' }}"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 7h.01M3 7l8-4 8 4v6l-8 4-8-4V7z" />
+
+
+                </svg>
+
+                Kelola Category
+            </a>
+
             <a href="{{ route('admin.transactions.index') }}" class="flex
 items-center gap-3 px-4 py-3 {{ request()->routeIs('admin.transactions.*') ?
-'bg-indigo-800 text-white' : 'hover:bg-indigo-800' }} rounded-xl font-bold
+    'bg-indigo-800 text-white' : 'hover:bg-indigo-800' }} rounded-xl font-bold
 transition">
 
                 <svg class="w-5 h-5 {{
-request()->routeIs('admin.transactisons.*') ? 'text-indigo-300' :
-'text-indigo-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    request()->routeIs('admin.transactisons.*') ? 'text-indigo-300' :
+    'text-indigo-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0
 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2
 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>
                 Laporan Transaksi
             </a>
-       
 
-        <a href="{{ url('/admin/partners') }}" class="flex items-center gap-3 px-4 py-3 {{ request()->is('admin/partners*') ? 'bg-indigo-800 text-white' : 'hover:bg-indigo-800' }} rounded-xl font-bold transition">
-
-            <svg class="w-5 h-5 {{ request()->is('admin/partners*') ? 'text-indigo-300' : 'text-indigo-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5-2.236M9 20H4v-2a3 3 0 015-2.236m6-3.764a4 4 0 10-8 0 4 4 0 008 0z"></path>
-
-            </svg>
-
-            Partners
-        </a>
         </nav>
 
         <div class="pt-6 border-t border-indigo-800">
@@ -113,12 +133,12 @@ py-3 text-indigo-300 hover:text-white transition font-medium text-left">
 
         @if(session('success'))
 
-        <div class="bg-green-100 text-green-700 p-4 rounded-xl mb-6
+            <div class="bg-green-100 text-green-700 p-4 rounded-xl mb-6
 
-font-bold text-sm">
+                font-bold text-sm">
 
-            {{ session('success') }}
-        </div>
+                {{ session('success') }}
+            </div>
         @endif
 
         @yield('content')

@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Event; 
 
 class Category extends Model
 {
     protected $fillable = ['name', 'slug'];
-    // Menandakan atribut: 1 Kategori dapat memiliki banyak list Event
+
+    // 1 kategori punya banyak event
     public function events()
     {
         return $this->hasMany(Event::class);

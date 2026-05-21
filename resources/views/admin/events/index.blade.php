@@ -18,6 +18,30 @@ hover:bg-indigo-700 active:scale-95 transition">
     </div>
 </header>
 
+<div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+
+<div class="px-8 py-6 bg-slate-50/50 border-b">
+
+<form action="{{ route('admin.events.index') }}"
+    method="GET"
+    class="flex gap-4">
+
+    <input type="text"
+        name="search"
+        value="{{ request('search') }}"
+        placeholder="Cari nama event..."
+        class="flex-1 px-5 py-3 rounded-xl border-slate-200 border bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition">
+
+    <button type="submit"
+        class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">
+
+        Cari
+
+    </button>
+
+</form>
+
+</div>
 
 <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm
 overflow-hidden">
@@ -70,6 +94,17 @@ number_format($event->price, 0, ',', '.') }}</p>
                     </td>
                     <td class="px-8 py-6">
                         <div class="flex gap-2">
+                            
+                        <a href="{{ route('admin.events.edit', $event->id) }}" class="p-2.5 bg-indigo-50
+text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 00-2
+2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828
+15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                            </a>
+
                             <form action="{{ route('admin.events.destroy',
 $event->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus acara ini?');">
 
@@ -88,15 +123,7 @@ transition">
                                     </svg>
                                 </button>
                             </form>
-                            <a href="{{ route('admin.events.edit', $event->id) }}" class="p-2.5 bg-indigo-50
-text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 00-2
-2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828
-15H9v-2.828l8.586-8.586z"></path>
-                                </svg>
-                            </a>
+                            
                         </div>
                     </td>
                 </tr>

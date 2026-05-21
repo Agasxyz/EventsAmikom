@@ -11,10 +11,18 @@ class EventController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Memakai relasi dan pengaturan limit paginasi (10 entri per halaman)
-        $events = \App\Models\Event::with('category')->latest()->paginate(10);
+        $search = $request->search;
+
+        $events = Event::with('category');
+
+        if ($search) {
+            $events->where('title', 'LIKE', '%' . $search . '%');
+        }
+
+        $events = $events->latest()->paginate(10);
+
         return view('admin.events.index', compact('events'));
     }
 
@@ -33,23 +41,23 @@ class EventController extends Controller
     public function store(\Illuminate\Http\Request $request)
     {
         // Menerapkan validasi data request dari pengguna
-$data = $request->validate([
-    'category_id' => 'required',
-    'title' => 'required|string|max:255',
-    'description' => 'required|string',
-    'date' => 'required|date',
-    'location' => 'required|string|max:255',
-    'price' => 'required|numeric',
-    'stock' => 'required|numeric'
-    ]);
-    
-    // Menyimpan data yang telah divalidasi ke dalam tabel menggunakan Model
-    \App\Models\Event::create($data);
-    return redirect()->route('admin.events.index')->with('success', 'Data Event
+        $data = $request->validate([
+            'category_id' => 'required',
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'date' => 'required|date',
+            'location' => 'required|string|max:255',
+            'price' => 'required|numeric',
+            'stock' => 'required|numeric'
+        ]);
+
+        // Menyimpan data yang telah divalidasi ke dalam tabel menggunakan Model
+        \App\Models\Event::create($data);
+        return redirect()->route('admin.events.index')->with('success', 'Data Event
 berhasil ditambahkan.');
     }
 
-    
+
 
     /**
      * Display the specified resource.
@@ -87,7 +95,7 @@ berhasil ditambahkan.');
 
         return redirect()->route('admin.events.index')->with('success', 'Rincian
         data event berhasil diperbarui.');
-    }   
+    }
 
     /**
      * Remove the specified resource from storage.
