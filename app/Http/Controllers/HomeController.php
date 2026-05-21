@@ -24,7 +24,6 @@ class HomeController extends Controller
 
         $events = $query->get();
 
-        // ✅ TAMBAHKAN INI
         $partners = Partner::latest()->get();
 
         return view('welcome', compact('events', 'categories', 'partners'));

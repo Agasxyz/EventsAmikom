@@ -7,7 +7,6 @@
     <form action="/admin/partners" method="POST" class="space-y-6">
         @csrf
 
-        {{-- NAME --}}
         <div>
             <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
                 Nama Partner
@@ -17,7 +16,7 @@
                    focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 outline-none transition font-medium" required>
         </div>
 
-        {{-- LOGO --}}
+    
         <div>
             <label class="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">
                 Logo URL
@@ -27,7 +26,6 @@
                    focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 outline-none transition font-medium" required>
         </div>
 
-        {{-- BUTTON --}}
         <div class="pt-4 flex justify-end gap-4 border-t border-slate-100">
 
             <a href="/admin/partners" class="px-6 py-4 text-slate-500 font-bold hover:text-slate-800 transition">

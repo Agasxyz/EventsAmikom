@@ -17,14 +17,12 @@
 
 <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
 
-    {{-- HEADER TABLE --}}
     <div class="px-8 py-6 bg-slate-50/50 border-b flex gap-4">
 
         <input type="text" placeholder="Cari nama partner..." class="flex-1 px-5 py-3 rounded-xl border-slate-200 border bg-white focus:ring-2 focus:ring-indigo-500 outline-none transition">
 
     </div>
 
-    {{-- TABLE --}}
     <div class="overflow-x-auto">
 
         <table class="w-full text-left border-collapse">
@@ -44,17 +42,14 @@
 
                 <tr class="hover:bg-slate-50/50 transition">
 
-                    {{-- NO --}}
                     <td class="px-8 py-6 font-bold text-slate-400">
                         {{ $index + 1 }}
                     </td>
 
-                    {{-- LOGO --}}
                     <td class="px-8 py-6">
                         <img src="{{ $partner->logo_url }}" class="w-14 h-14 rounded-xl object-cover shadow-sm">
                     </td>
 
-                    {{-- NAME --}}
                     <td class="px-8 py-6">
                         <p class="font-black text-slate-800">
                             {{ $partner->name }}
@@ -65,12 +60,10 @@
                         </p>
                     </td>
 
-                    {{-- ACTION --}}
                     <td class="px-8 py-6">
 
                         <div class="flex gap-2">
 
-                            {{-- EDIT --}}
                             <a href="#" class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl hover:bg-indigo-600 hover:text-white transition">
 
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -79,7 +72,6 @@
 
                             </a>
 
-                            {{-- DELETE --}}
                             <form action="#" method="POST">
                                 @csrf
                                 @method('DELETE')
