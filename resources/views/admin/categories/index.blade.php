@@ -23,10 +23,6 @@
 
 @if(session('success'))
 
-<div class="mb-6 px-6 py-4 rounded-2xl bg-green-50 border border-green-200 text-green-700 font-semibold">
-    {{ session('success') }}
-</div>
-
 @endif
 
 <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
