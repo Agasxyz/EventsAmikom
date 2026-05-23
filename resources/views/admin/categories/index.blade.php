@@ -21,10 +21,6 @@
 
 </header>
 
-@if(session('success'))
-
-@endif
-
 <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
 
 <div class="px-8 py-6 bg-slate-50/50 border-b">
