@@ -28,10 +28,7 @@ Route::get('/bantuan', function () {
 
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/event/1', [
-    EventController::class,
-    'show'
-])->name('events.show');
+Route::get('/events/{event}', [\App\Http\Controllers\EventController::class, 'show'])->name('events.show');
 Route::get('/checkout', [
     EventController::class,
     'checkout'
@@ -82,7 +79,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Mengamankan Route Administrasi di balik tembok (Middleware)
     Route::middleware(['auth', 'admin'])->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::resource('events', EventController::class);
+        Route::resource('events', EventAdminController::class);
         Route::get('transactions', [TransactionController::class, 'index'])->name('transactions.index');
     });
 });
