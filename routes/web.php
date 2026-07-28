@@ -17,6 +17,10 @@ use App\Http\Controllers\Auth\SocialiteController;
 // ─────────────────────────────────────────────
 // Halaman Publik
 // ─────────────────────────────────────────────
+Route::get('/api/test-php', function () {
+    return 'PHP is working on Vercel!';
+});
+
 Route::get('/profil', function () {
     return view('profil');
 });
