@@ -115,13 +115,13 @@
     {{-- Mobile Dropdown Menu --}}
     <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-100 shadow-lg z-30 px-4 py-4 space-y-1">
         <a href="{{ route('home') }}#events" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
-            🎯 Jelajahi Event
+            Jelajahi Event
         </a>
         <a href="{{ route('categories') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
-            📂 Kategori
+            Kategori
         </a>
         <a href="{{ route('about') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 transition">
-            ℹ️ Tentang Kami
+            Tentang Kami
         </a>
 
         @auth
@@ -137,13 +137,13 @@
                 </div>
                 @if(auth()->user()->isOrganizer() && auth()->user()->organization && auth()->user()->organization->status === 'active')
                     <a href="{{ route('organizer.dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 transition">
-                        🏠 Dashboard Partner
+                        Dashboard Partner
                     </a>
                 @endif
                 <form method="POST" action="{{ route('user.logout') }}">
                     @csrf
                     <button type="submit" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-rose-600 hover:bg-rose-50 transition text-left">
-                        🚪 Keluar
+                        Keluar
                     </button>
                 </form>
             </div>
