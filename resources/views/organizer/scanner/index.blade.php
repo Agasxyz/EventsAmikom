@@ -251,23 +251,17 @@
         scannerPlaceholder.style.opacity = '0';
         setTimeout(() => { scannerPlaceholder.style.display = 'none'; }, 300);
 
+        // Reset DOM container pemutar kamera agar bersih dari state sebelumnya
+        const readerElement = document.getElementById('reader');
+        readerElement.innerHTML = '';
         html5QrCode = new Html5Qrcode("reader");
 
         const config = {
             fps: 15,
-            aspectRatio: 1.0,
             qrbox: function(width, height) {
                 const minEdge = Math.min(width, height);
                 const qrboxSize = Math.floor(minEdge * 0.7);
                 return { width: qrboxSize, height: qrboxSize };
-            },
-            videoConstraints: {
-                width: { ideal: 720 },
-                height: { ideal: 720 },
-                aspectRatio: { ideal: 1.0 }
-            },
-            experimentalFeatures: {
-                useBarCodeDetectorIfSupported: false
             }
         };
 
@@ -372,27 +366,26 @@
     }
 
     function startScanningWithId(deviceId) {
+        // Reset DOM container agar pemutar media benar-benar baru
+        const readerElement = document.getElementById('reader');
+        readerElement.innerHTML = '';
         html5QrCode = new Html5Qrcode("reader");
+        
         activeCameraId = deviceId;
         cameraSelectDropdown.value = deviceId;
 
         const config = {
             fps: 15,
-            aspectRatio: 1.0,
             qrbox: function(width, height) {
                 const minEdge = Math.min(width, height);
                 const qrboxSize = Math.floor(minEdge * 0.7);
                 return { width: qrboxSize, height: qrboxSize };
-            },
-            videoConstraints: {
-                width: { ideal: 720 },
-                height: { ideal: 720 },
-                aspectRatio: { ideal: 1.0 }
             }
         };
 
+        // Gunakan constraints deviceId exact agar browser tidak salah memilih fallback
         html5QrCode.start(
-            deviceId,
+            { deviceId: { exact: deviceId } },
             config,
             (decodedText, decodedResult) => {
                 stopScanning();
