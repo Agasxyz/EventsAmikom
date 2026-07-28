@@ -10,11 +10,17 @@ class AdminMiddleware
 {
     /**
      * Handle an incoming request.
-     *
-     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (!auth()->check()) {
+            return redirect()->route('user.login');
+        }
+
+        if (!auth()->user()->isSuperAdmin()) {
+            abort(403, 'Akses ditolak. Halaman ini hanya untuk Administrator.');
+        }
+
         return $next($request);
     }
 }

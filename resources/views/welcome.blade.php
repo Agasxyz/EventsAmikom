@@ -55,7 +55,7 @@
 
 
         <!-- Blok Navigasi Filter Kategori -->
-        <div class="mb-8 flex gap-4 justify-center">
+        <div id="categories" class="mb-8 flex gap-4 justify-center">
 
             <!-- Rujukan awal navigasi bebas bawaan -->
             <a href="/" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-black transition">

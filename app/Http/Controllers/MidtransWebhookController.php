@@ -46,6 +46,7 @@ class MidtransWebhookController extends Controller
             $this->processSuccess($transaction);
         } else if (in_array($transactionStatus, ['cancel', 'deny', 'expire'])) {
             $transaction->status = 'failed';
+            $this->releaseStock($transaction);
         } else if ($transactionStatus == 'pending') {
             $transaction->status = 'pending';
         }
@@ -56,21 +57,30 @@ class MidtransWebhookController extends Controller
 
     private function processSuccess(Transaction $transaction)
     {
-        $event = $transaction->event;
-        
-        // Jika tiket masih ada dan terhubung dengan data event, kurangi jumlahnya sebanyak 1
-        if ($event && $event->stock > 0) {
-            $event->stock = $event->stock - 1;
-            $event->save();
-            
-            // Mengirimkan email E-Ticket ke pelanggan
+        // Mengirimkan email E-Ticket ke pelanggan (stok sudah dikurangi di awal saat checkout)
+        try {
+            \Illuminate\Support\Facades\Mail::to($transaction->customer_email)->send(new \App\Mail\EventTicketMail($transaction));
+            Log::info('E-Ticket berhasil dikirimkan ke pelanggan: ' . $transaction->customer_email);
+        } catch (\Exception $e) {
+            Log::error('Gagal mengirim email E-Ticket: ' . $e->getMessage());
+        }
+    }
+
+    private function releaseStock(Transaction $transaction)
+    {
+        if ($transaction->event) {
             try {
-                \Illuminate\Support\Facades\Mail::to($transaction->customer_email)->send(new \App\Mail\EventTicketMail($transaction));
+                \Illuminate\Support\Facades\DB::transaction(function () use ($transaction) {
+                    $event = \App\Models\Event::where('id', $transaction->event_id)->lockForUpdate()->first();
+                    if ($event) {
+                        $event->stock = $event->stock + 1;
+                        $event->save();
+                        Log::info('Stok tiket dilepas/dikembalikan (+1) untuk event ID: ' . $event->id . ' karena transaksi dibatalkan/expired. Order: ' . $transaction->order_id);
+                    }
+                });
             } catch (\Exception $e) {
-                Log::error('Gagal mengirim email E-Ticket: ' . $e->getMessage());
+                Log::error('Gagal melepaskan stok tiket: ' . $e->getMessage());
             }
-        } else {
-            Log::warning('Stock habis setelah pembayaran berhasil (Perlu proses refund opsional). Order: ' . $transaction->order_id);
         }
     }
 }

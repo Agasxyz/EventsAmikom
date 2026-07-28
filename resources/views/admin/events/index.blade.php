@@ -70,9 +70,14 @@ $events->firstItem() + $index }}</td>
 
 }}</p>
 
-                            <p class="text-xs text-slate-400">{{
-
-$event->category->name ?? '-' }} • {{ $event->date }}</p>
+                            <p class="text-xs text-slate-400">
+                                {{ $event->category->name ?? '-' }} • {{ \Carbon\Carbon::parse($event->date)->format('d-m-Y H:i') }}
+                                @if($event->organization)
+                                    • <span class="text-indigo-600 font-bold bg-indigo-50 px-2 py-0.5 rounded">Org: {{ $event->organization->name }}</span>
+                                @else
+                                    • <span class="text-slate-500 font-semibold bg-slate-100 px-2 py-0.5 rounded">Official</span>
+                                @endif
+                            </p>
 
                         </td>
                         <td class="px-8 py-6">

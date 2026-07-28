@@ -19,6 +19,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if (class_exists(\App\Models\Category::class)) {
+            try {
+                \Illuminate\Support\Facades\View::share('categories', \App\Models\Category::all());
+            } catch (\Exception $e) {
+                // Prevent migration errors if DB is not ready
+            }
+        }
     }
 }

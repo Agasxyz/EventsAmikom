@@ -12,7 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'admin' => \App\Http\Middleware\AdminMiddleware::class, // Sesuaikan dengan nama class middleware admin Anda
+            'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'superadmin' => \App\Http\Middleware\SuperAdminMiddleware::class,
+            'organizer' => \App\Http\Middleware\OrganizerMiddleware::class,
         ]);
     })
 

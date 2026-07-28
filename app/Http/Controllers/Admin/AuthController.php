@@ -21,11 +21,17 @@ class AuthController extends Controller
         ]);
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->route('admin.dashboard'); // Arahkan ke rute dashboard
+            $user = Auth::user();
+            if ($user->isSuperAdmin()) {
+                return redirect()->route('admin.dashboard');
+            } elseif ($user->isOrganizer()) {
+                return redirect()->route('organizer.dashboard');
+            }
+            return redirect()->route('home');
         }
 
         return back()->withErrors([
-            'email' => 'Email atau Password yang Anda berikan tidak terdaftar di database kami.',
+            'email' => 'Email atau Password Anda salah!',
         ]);
     }
 

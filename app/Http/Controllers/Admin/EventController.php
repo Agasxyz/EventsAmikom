@@ -16,7 +16,7 @@ class EventController extends Controller
     {
         $search = $request->search;
 
-        $events = Event::with('category');
+        $events = Event::with(['category', 'organization']);
 
         if ($search) {
             $events->where('title', 'LIKE', '%' . $search . '%');
@@ -33,7 +33,8 @@ class EventController extends Controller
     public function create()
     {
         $categories = \App\Models\Category::all();
-        return view('admin.events.create', compact('categories'));
+        $organizations = \App\Models\Organization::where('status', 'active')->get();
+        return view('admin.events.create', compact('categories', 'organizations'));
     }
 
     /**
@@ -44,6 +45,7 @@ class EventController extends Controller
         // Menerapkan validasi data request dari pengguna
         $data = $request->validate([
             'category_id' => 'required|exists:categories,id',
+            'organizer_id' => 'nullable|exists:organizations,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'date' => 'required|date',
@@ -61,8 +63,7 @@ class EventController extends Controller
 
         // Menyimpan data yang telah divalidasi ke dalam tabel menggunakan Model
         \App\Models\Event::create($data);
-        return redirect()->route('admin.events.index')->with('success', 'Data Event
-berhasil ditambahkan.');
+        return redirect()->route('admin.events.index')->with('success', 'Data Event berhasil ditambahkan.');
     }
 
 
@@ -81,7 +82,8 @@ berhasil ditambahkan.');
     public function edit(Event $event)
     {
         $categories = \App\Models\Category::all();
-        return view('admin.events.edit', compact('event', 'categories'));
+        $organizations = \App\Models\Organization::where('status', 'active')->get();
+        return view('admin.events.edit', compact('event', 'categories', 'organizations'));
     }
 
     /**
@@ -91,6 +93,7 @@ berhasil ditambahkan.');
     {
         $data = $request->validate([
             'category_id' => 'required|exists:categories,id',
+            'organizer_id' => 'nullable|exists:organizations,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'date' => 'required|date',

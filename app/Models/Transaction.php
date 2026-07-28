@@ -7,7 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class Transaction extends Model
 {
     protected $fillable = [
-        'event_id', 'order_id', 'customer_name', 'customer_email', 'customer_phone', 'total_price', 'status', 'snap_token'
+        'event_id', 'order_id', 'customer_name', 'customer_email', 'customer_phone', 'total_price', 'status', 'snap_token', 'is_used', 'used_at', 'reserved_at'
+    ];
+
+    protected $casts = [
+        'reserved_at' => 'datetime',
+        'used_at' => 'datetime',
+        'is_used' => 'boolean'
     ];
 
     public function event()
