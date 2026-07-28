@@ -36,8 +36,15 @@
                     <span class="w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping"></span>
                     <h4 class="font-bold text-slate-800 text-lg">Scan QR Code Tiket</h4>
                 </div>
-                <!-- Pilihan Kamera (Hidden, Default to Environment) -->
-                <input type="hidden" id="camera-select" value="environment">
+                {{-- Tombol Flip Kamera --}}
+                <button id="btn-flip-camera" onclick="flipCamera()" title="Ganti Kamera"
+                    class="hidden items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                    Balik Kamera
+                </button>
             </div>
 
             <!-- Kamera Box Area -->
@@ -95,7 +102,8 @@
 
             <!-- Tombol Kontrol Scanner -->
             <div class="w-full flex justify-center gap-3">
-                <button id="btn-stop-scan" onclick="stopScanning()" disabled class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 rounded-xl text-xs font-bold transition">
+                <button id="btn-stop-scan" onclick="stopScanning()" disabled
+                    class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 rounded-xl text-xs font-bold transition">
                     Hentikan Scanner
                 </button>
             </div>
@@ -226,25 +234,18 @@
 
 <script>
     let html5QrCode = null;
-    const cameraSelect = document.getElementById('camera-select');
+    let currentFacingMode = 'environment'; // 'environment' = kamera belakang, 'user' = kamera depan
     const scannerPlaceholder = document.getElementById('scanner-placeholder');
     const btnStopScan = document.getElementById('btn-stop-scan');
+    const btnFlipCamera = document.getElementById('btn-flip-camera');
 
-    // Kita panggil getCameras() secara opsional saat load halaman tanpa memblokir
-    window.addEventListener('DOMContentLoaded', () => {
-        updateCameraList();
-    });
+    window.addEventListener('DOMContentLoaded', () => {});
 
-    function updateCameraList() {
-        // No-op: Hanya menggunakan kamera utama (environment)
-    }
+    function updateCameraList() {}
 
-    function startScanning() {
-        const cameraValue = cameraSelect.value;
-        if (!cameraValue) {
-            alert('Kamera tidak siap.');
-            return;
-        }
+    function startScanning(facingMode) {
+        facingMode = facingMode || currentFacingMode;
+        currentFacingMode = facingMode;
 
         // Sembunyikan placeholder dengan fade out
         scannerPlaceholder.style.opacity = '0';
@@ -258,10 +259,7 @@
             qrbox: function(width, height) {
                 const minEdge = Math.min(width, height);
                 const qrboxSize = Math.floor(minEdge * 0.7);
-                return {
-                    width: qrboxSize,
-                    height: qrboxSize
-                };
+                return { width: qrboxSize, height: qrboxSize };
             },
             videoConstraints: {
                 width: { ideal: 720 },
@@ -273,33 +271,43 @@
             }
         };
 
-        // Mendukung mode facingMode maupun device ID
-        let cameraConfig = cameraValue;
-        if (cameraValue === 'environment' || cameraValue === 'user') {
-            cameraConfig = { facingMode: cameraValue };
-        }
-
         html5QrCode.start(
-            cameraConfig,
+            { facingMode: currentFacingMode },
             config,
             (decodedText, decodedResult) => {
                 stopScanning();
                 processCheckIn(decodedText);
             },
-            (errorMessage) => {
-                // Mode pemindaian
-            }
+            (errorMessage) => {}
         ).then(() => {
             btnStopScan.disabled = false;
-            // Tampilkan laser line
             document.getElementById('laser-line').classList.remove('hidden');
-            // Update camera list setelah izin diberikan
-            updateCameraList();
+            // Tampilkan tombol flip kamera
+            btnFlipCamera.classList.remove('hidden');
+            btnFlipCamera.classList.add('flex');
         }).catch(err => {
             console.error("Gagal menjalankan kamera: ", err);
             alert("Gagal mengakses kamera. Mohon berikan izin kamera pada browser Anda (klik ikon gembok di sebelah alamat URL).");
             resetScannerUI();
         });
+    }
+
+    async function flipCamera() {
+        // Toggle facing mode
+        const nextFacing = currentFacingMode === 'environment' ? 'user' : 'environment';
+        btnFlipCamera.disabled = true;
+        btnFlipCamera.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Mengganti...`;
+        try {
+            await html5QrCode.stop();
+            html5QrCode = null;
+            document.getElementById('laser-line').classList.add('hidden');
+            startScanning(nextFacing);
+        } catch(e) {
+            console.error('Gagal ganti kamera:', e);
+        } finally {
+            btnFlipCamera.disabled = false;
+            btnFlipCamera.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Balik Kamera`;
+        }
     }
 
     function stopScanning() {
@@ -313,14 +321,15 @@
     }
 
     function resetScannerUI() {
-        // Sembunyikan laser line
         document.getElementById('laser-line').classList.add('hidden');
-        // Tampilkan placeholder
         const ph = document.getElementById('scanner-placeholder');
         ph.style.display = 'flex';
         ph.style.opacity = '0';
         setTimeout(() => { ph.style.opacity = '1'; }, 50);
         btnStopScan.disabled = true;
+        // Sembunyikan tombol flip
+        btnFlipCamera.classList.add('hidden');
+        btnFlipCamera.classList.remove('flex');
     }
 
     function showStatus(type) {

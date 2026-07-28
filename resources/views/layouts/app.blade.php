@@ -41,7 +41,7 @@
 <body class="bg-slate-50 text-slate-900">
 
     <!-- Navigation -->
-    <nav class="glass sticky top-0 z-40 px-4 sm:px-6 py-3 border-b border-white/30 shadow-sm flex justify-between items-center">
+    <nav class="glass sticky top-4 z-40 mx-4 mt-4 px-4 sm:px-6 py-4 rounded-2xl border border-white/20 shadow-lg flex justify-between items-center">
         {{-- Logo --}}
         <a href="{{ route('home') }}" class="flex items-center gap-2">
             <div class="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-lg">

@@ -44,14 +44,14 @@
 
 <!-- Events Grid -->
 <section id="events" class="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-20">
-    <div class="mb-8 md:mb-12">
-        <div class="mb-6">
+    <div class="flex flex-col md:flex-row justify-between md:items-end gap-4 mb-10 md:mb-12">
+        <div>
             <h2 class="text-2xl sm:text-3xl font-extrabold mb-2">Event Terdekat</h2>
             <p class="text-slate-500 font-medium text-sm sm:text-base">Jangan sampai ketinggalan acara seru minggu ini!</p>
         </div>
 
-        <!-- Blok Navigasi Filter Kategori -->
-        <div id="categories" class="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+        {{-- Filter Kategori: scroll horizontal di mobile, flex biasa di desktop --}}
+        <div id="categories" class="flex gap-2 overflow-x-auto pb-1 md:pb-0 flex-shrink-0 max-w-full md:max-w-none">
             <a href="/" class="flex-shrink-0 px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-full text-black text-sm font-semibold transition">
                 Semua
             </a>
