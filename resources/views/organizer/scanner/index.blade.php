@@ -265,51 +265,14 @@
             }
         };
 
-        // Mulai dengan memaksa kamera belakang (environment) agar memicu popup izin akses kamera
-        html5QrCode.start(
-            { facingMode: { exact: "environment" } },
-            config,
-            (decodedText, decodedResult) => {
-                stopScanning();
-                processCheckIn(decodedText);
-            },
-            (errorMessage) => {}
-        ).catch(err => {
-            console.warn("Gagal force kamera belakang dengan exact constraint, mencoba mode standard...", err);
-            // Fallback 1: Coba jalankan kamera belakang standard (tanpa exact constraint)
-            return html5QrCode.start(
-                { facingMode: "environment" },
-                config,
-                (decodedText, decodedResult) => {
-                    stopScanning();
-                    processCheckIn(decodedText);
-                },
-                (errorMessage) => {}
-            );
-        }).catch(err2 => {
-            console.warn("Gagal kamera belakang standard, mencoba kamera default apa saja...", err2);
-            // Fallback 2: Jalankan kamera apa saja yang tersedia (biasanya kamera depan)
-            return html5QrCode.start(
-                { facingMode: "user" },
-                config,
-                (decodedText, decodedResult) => {
-                    stopScanning();
-                    processCheckIn(decodedText);
-                },
-                (errorMessage) => {}
-            );
-        }).then(() => {
-            isScanning = true;
-            btnStopScan.disabled = false;
-            document.getElementById('laser-line').classList.remove('hidden');
-            
-            // Setelah kamera aktif (izin sudah diberikan), panggil getCameras untuk membaca label kamera fisik asli
-            return Html5Qrcode.getCameras();
-        }).then(devices => {
+        // 1. Minta daftar kamera terlebih dahulu (ini akan memicu prompt izin akses kamera)
+        Html5Qrcode.getCameras().then(devices => {
             cameras = devices;
             
             // Bersihkan dropdown pilihan kamera
             cameraSelectDropdown.innerHTML = '';
+            
+            let targetCameraId = null;
             
             if (cameras && cameras.length > 0) {
                 cameras.forEach((device, index) => {
@@ -319,26 +282,58 @@
                     cameraSelectDropdown.appendChild(option);
                 });
                 
-                // Cari kamera belakang untuk dicocokkan dengan dropdown
+                // Cari kamera belakang secara default
                 let backCam = cameras.find(cam => {
-                    const label = cam.label.toLowerCase();
+                    const label = (cam.label || '').toLowerCase();
                     return label.includes('back') || label.includes('rear') || label.includes('environment') || label.includes('belakang') || label.includes('main');
                 });
                 
-                // Set active ID
                 if (backCam) {
-                    activeCameraId = backCam.id;
+                    targetCameraId = backCam.id;
                 } else {
-                    activeCameraId = cameras[0].id;
+                    targetCameraId = cameras[0].id;
                 }
                 
+                activeCameraId = targetCameraId;
                 cameraSelectDropdown.value = activeCameraId;
+            }
+
+            // 2. Jalankan kamera menggunakan Device ID terpilih
+            if (targetCameraId) {
+                return html5QrCode.start(
+                    targetCameraId,
+                    config,
+                    (decodedText, decodedResult) => {
+                        stopScanning();
+                        processCheckIn(decodedText);
+                    },
+                    (errorMessage) => {}
+                );
+            } else {
+                // Fallback jika tidak ada device ID terdeteksi
+                return html5QrCode.start(
+                    { facingMode: "environment" },
+                    config,
+                    (decodedText, decodedResult) => {
+                        stopScanning();
+                        processCheckIn(decodedText);
+                    },
+                    (errorMessage) => {}
+                );
+            }
+        }).then(() => {
+            isScanning = true;
+            btnStopScan.disabled = false;
+            document.getElementById('laser-line').classList.remove('hidden');
+            
+            // Tampilkan dropdown jika ada lebih dari 1 kamera
+            if (cameras && cameras.length > 1) {
                 cameraSelectContainer.classList.remove('hidden');
                 cameraSelectContainer.classList.add('flex');
             }
         }).catch(err => {
             console.error("Gagal memulai/mendeteksi scanner: ", err);
-            alert("Gagal mengakses kamera. Mohon berikan izin kamera pada browser Anda (klik ikon gembok di sebelah alamat URL).");
+            alert("Gagal mengakses kamera: " + (err.message || err) + "\n\nPastikan browser Anda diizinkan menggunakan kamera.");
             resetScannerUI();
         });
     }
@@ -399,7 +394,7 @@
             document.getElementById('laser-line').classList.remove('hidden');
         }).catch(err => {
             console.error("Gagal mengaktifkan kamera terpilih: ", err);
-            alert("Gagal mengaktifkan kamera terpilih.");
+            alert("Gagal mengaktifkan kamera terpilih: " + (err.message || err));
             resetScannerUI();
         });
     }
