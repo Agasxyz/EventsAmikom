@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<section class="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-20 flex flex-col md:flex-row items-center gap-10 md:gap-12">
+<section class="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-20 flex flex-col md:flex-row items-center gap-10 md:gap-12 overflow-hidden">
     <div class="flex-1 space-y-6 text-center md:text-left">
         <span class="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-bold uppercase tracking-wider">#1 Event Platform</span>
         <h1 class="text-4xl sm:text-5xl md:text-7xl font-extrabold leading-tight text-center md:text-left">
@@ -20,24 +20,22 @@
             </a>
         </div>
     </div>
-    <div class="flex-1 relative w-full max-w-sm mx-auto md:max-w-none mt-10 md:mt-0">
-        <div class="absolute -top-10 -left-10 w-64 h-64 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob">
-        </div>
-        <div class="absolute -bottom-10 -right-10 w-64 h-64 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000">
-        </div>
+    <div class="flex-1 relative w-full max-w-sm mx-auto md:max-w-none mt-10 md:mt-0 overflow-hidden md:overflow-visible">
+        {{-- Blobs: hidden on mobile to prevent overflow --}}
+        <div class="hidden md:block absolute -top-10 -left-10 w-64 h-64 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+        <div class="hidden md:block absolute -bottom-10 -right-10 w-64 h-64 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
         <img src="assets/concert.png" alt="Concert" class="rounded-[2rem] shadow-2xl relative z-10 w-full object-cover aspect-[4/5] object-center">
-
-        <div class="absolute -bottom-6 -left-6 glass p-6 rounded-2xl shadow-xl z-20 border border-white">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                        </path>
+        {{-- Badge: inside on mobile, protruding on desktop --}}
+        <div class="absolute bottom-4 left-4 right-4 sm:bottom-4 sm:left-4 sm:right-4 md:-bottom-6 md:-left-6 md:right-auto glass p-4 rounded-2xl shadow-xl z-20 border border-white">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                 </div>
                 <div>
                     <p class="text-xs text-slate-500 font-bold uppercase">Terverifikasi</p>
-                    <p class="font-bold">Pembayaran Aman via Midtrans</p>
+                    <p class="font-bold text-sm">Pembayaran Aman via Midtrans</p>
                 </div>
             </div>
         </div>

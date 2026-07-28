@@ -11,9 +11,11 @@
     <style>
         html {
             scroll-behavior: smooth;
+            overflow-x: hidden;
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
         }
         .glass {
             background: rgba(255, 255, 255, 0.7);
