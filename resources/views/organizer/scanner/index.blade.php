@@ -36,15 +36,6 @@
                     <span class="w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping"></span>
                     <h4 class="font-bold text-slate-800 text-lg">Scan QR Code Tiket</h4>
                 </div>
-                {{-- Tombol Flip Kamera --}}
-                <button id="btn-flip-camera" onclick="flipCamera()" title="Ganti Kamera"
-                    class="hidden items-center gap-1.5 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl text-xs font-bold transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                    Balik Kamera
-                </button>
             </div>
 
             <!-- Kamera Box Area -->
@@ -101,9 +92,17 @@
             </div>
 
             <!-- Tombol Kontrol Scanner -->
-            <div class="w-full flex justify-center gap-3">
+            <div class="w-full flex flex-col items-center gap-4">
+                <!-- Dropdown Pilihan Kamera -->
+                <div id="camera-select-container" class="hidden w-full max-w-[360px] flex-col gap-1.5">
+                    <label for="camera-select-dropdown" class="text-xs font-bold text-slate-500">Pilih Kamera:</label>
+                    <select id="camera-select-dropdown" onchange="onCameraDropdownChange(this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Mendeteksi kamera...</option>
+                    </select>
+                </div>
+
                 <button id="btn-stop-scan" onclick="stopScanning()" disabled
-                    class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 rounded-xl text-xs font-bold transition">
+                    class="w-full max-w-[360px] px-5 py-2.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 rounded-xl text-xs font-bold transition">
                     Hentikan Scanner
                 </button>
             </div>
@@ -235,17 +234,19 @@
 <script>
     let html5QrCode = null;
     let cameras = [];
-    let currentCameraIndex = 0;
+    let activeCameraId = null;
+    let isScanning = false;
     
     const scannerPlaceholder = document.getElementById('scanner-placeholder');
     const btnStopScan = document.getElementById('btn-stop-scan');
-    const btnFlipCamera = document.getElementById('btn-flip-camera');
+    const cameraSelectContainer = document.getElementById('camera-select-container');
+    const cameraSelectDropdown = document.getElementById('camera-select-dropdown');
 
     window.addEventListener('DOMContentLoaded', () => {});
 
-    function updateCameraList() {}
-
     function startScanning() {
+        if (isScanning) return;
+
         // Sembunyikan placeholder dengan fade out
         scannerPlaceholder.style.opacity = '0';
         setTimeout(() => { scannerPlaceholder.style.display = 'none'; }, 300);
@@ -304,6 +305,7 @@
                 (errorMessage) => {}
             );
         }).then(() => {
+            isScanning = true;
             btnStopScan.disabled = false;
             document.getElementById('laser-line').classList.remove('hidden');
             
@@ -312,87 +314,101 @@
         }).then(devices => {
             cameras = devices;
             
-            if (cameras && cameras.length > 1) {
-                btnFlipCamera.classList.remove('hidden');
-                btnFlipCamera.classList.add('flex');
+            // Bersihkan dropdown pilihan kamera
+            cameraSelectDropdown.innerHTML = '';
+            
+            if (cameras && cameras.length > 0) {
+                cameras.forEach((device, index) => {
+                    const option = document.createElement('option');
+                    option.value = device.id;
+                    option.text = device.label || `Kamera ${index + 1}`;
+                    cameraSelectDropdown.appendChild(option);
+                });
                 
-                // Cari kamera yang sedang aktif dalam list untuk menentukan currentCameraIndex awal
-                // Kita tebak berdasarkan label kameranya
-                let searchLabel = ['back', 'rear', 'environment', 'belakang', 'main', 'camera 0'];
-                let matchedIndex = cameras.findIndex(cam => 
-                    searchLabel.some(label => cam.label.toLowerCase().includes(label))
-                );
-                if (matchedIndex !== -1) {
-                    currentCameraIndex = matchedIndex;
+                // Cari kamera belakang untuk dicocokkan dengan dropdown
+                let backCam = cameras.find(cam => {
+                    const label = cam.label.toLowerCase();
+                    return label.includes('back') || label.includes('rear') || label.includes('environment') || label.includes('belakang') || label.includes('main');
+                });
+                
+                // Set active ID
+                if (backCam) {
+                    activeCameraId = backCam.id;
                 } else {
-                    currentCameraIndex = 0;
+                    activeCameraId = cameras[0].id;
                 }
-            } else {
-                btnFlipCamera.classList.add('hidden');
-                btnFlipCamera.classList.remove('flex');
+                
+                cameraSelectDropdown.value = activeCameraId;
+                cameraSelectContainer.classList.remove('hidden');
+                cameraSelectContainer.classList.add('flex');
             }
         }).catch(err => {
-            console.error("Gagal memulai scanner: ", err);
+            console.error("Gagal memulai/mendeteksi scanner: ", err);
             alert("Gagal mengakses kamera. Mohon berikan izin kamera pada browser Anda (klik ikon gembok di sebelah alamat URL).");
             resetScannerUI();
         });
     }
 
-    async function flipCamera() {
-        if (!cameras || cameras.length <= 1) {
-            alert("Hanya ada 1 kamera yang terdeteksi.");
-            return;
-        }
-
-        btnFlipCamera.disabled = true;
-        btnFlipCamera.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Mengganti...`;
+    async function onCameraDropdownChange(deviceId) {
+        if (!deviceId || deviceId === activeCameraId) return;
         
-        try {
-            // Hentikan kamera aktif saat ini
-            await html5QrCode.stop();
-            html5QrCode = null;
-            document.getElementById('laser-line').classList.add('hidden');
-            
-            // Geser index ke kamera fisik selanjutnya
-            currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
-            const nextCameraId = cameras[currentCameraIndex].id;
-
-            // Jalankan ulang scanner menggunakan Device ID fisik yang dituju
-            html5QrCode = new Html5Qrcode("reader");
-            const config = {
-                fps: 15,
-                aspectRatio: 1.0,
-                qrbox: function(width, height) {
-                    const minEdge = Math.min(width, height);
-                    const qrboxSize = Math.floor(minEdge * 0.7);
-                    return { width: qrboxSize, height: qrboxSize };
-                },
-                videoConstraints: {
-                    width: { ideal: 720 },
-                    height: { ideal: 720 },
-                    aspectRatio: { ideal: 1.0 }
-                }
-            };
-
-            await html5QrCode.start(
-                nextCameraId,
-                config,
-                (decodedText, decodedResult) => {
-                    stopScanning();
-                    processCheckIn(decodedText);
-                },
-                (errorMessage) => {}
-            );
-
-            document.getElementById('laser-line').classList.remove('hidden');
-        } catch(e) {
-            console.error('Gagal ganti kamera:', e);
-            alert("Gagal beralih ke kamera berikutnya.");
-            resetScannerUI();
-        } finally {
-            btnFlipCamera.disabled = false;
-            btnFlipCamera.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Balik Kamera`;
+        // Nonaktifkan dropdown sementara selama pergantian
+        cameraSelectDropdown.disabled = true;
+        
+        if (html5QrCode) {
+            try {
+                await html5QrCode.stop();
+                html5QrCode = null;
+                document.getElementById('laser-line').classList.add('hidden');
+            } catch (e) {
+                console.error("Gagal menghentikan kamera sebelumnya: ", e);
+            }
         }
+        
+        // Beri jeda 350ms agar device melepaskan stream kamera lama sebelum membuka stream baru
+        setTimeout(() => {
+            startScanningWithId(deviceId);
+        }, 350);
+    }
+
+    function startScanningWithId(deviceId) {
+        html5QrCode = new Html5Qrcode("reader");
+        activeCameraId = deviceId;
+        cameraSelectDropdown.value = deviceId;
+
+        const config = {
+            fps: 15,
+            aspectRatio: 1.0,
+            qrbox: function(width, height) {
+                const minEdge = Math.min(width, height);
+                const qrboxSize = Math.floor(minEdge * 0.7);
+                return { width: qrboxSize, height: qrboxSize };
+            },
+            videoConstraints: {
+                width: { ideal: 720 },
+                height: { ideal: 720 },
+                aspectRatio: { ideal: 1.0 }
+            }
+        };
+
+        html5QrCode.start(
+            deviceId,
+            config,
+            (decodedText, decodedResult) => {
+                stopScanning();
+                processCheckIn(decodedText);
+            },
+            (errorMessage) => {}
+        ).then(() => {
+            isScanning = true;
+            btnStopScan.disabled = false;
+            cameraSelectDropdown.disabled = false;
+            document.getElementById('laser-line').classList.remove('hidden');
+        }).catch(err => {
+            console.error("Gagal mengaktifkan kamera terpilih: ", err);
+            alert("Gagal mengaktifkan kamera terpilih.");
+            resetScannerUI();
+        });
     }
 
     function stopScanning() {
@@ -406,15 +422,18 @@
     }
 
     function resetScannerUI() {
+        isScanning = false;
         document.getElementById('laser-line').classList.add('hidden');
         const ph = document.getElementById('scanner-placeholder');
         ph.style.display = 'flex';
         ph.style.opacity = '0';
         setTimeout(() => { ph.style.opacity = '1'; }, 50);
         btnStopScan.disabled = true;
-        // Sembunyikan tombol flip
-        btnFlipCamera.classList.add('hidden');
-        btnFlipCamera.classList.remove('flex');
+        
+        // Reset dropdown pilihan kamera
+        cameraSelectContainer.classList.add('hidden');
+        cameraSelectContainer.classList.remove('flex');
+        cameraSelectDropdown.disabled = false;
     }
 
     function showStatus(type) {
