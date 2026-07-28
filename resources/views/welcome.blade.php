@@ -68,7 +68,7 @@
         @foreach($events as $event)
         <div class="group bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden">
             <div class="relative overflow-hidden aspect-[3/4]">
-            <img src="{{ ($event->poster_path && Storage::disk('public')->exists($event->poster_path))
+            <img src="{{ ($event->poster_path && file_exists(public_path('storage/' . $event->poster_path)))
                      ? asset('storage/' . $event->poster_path)
                      : 'https://placehold.co/200x600' }}" alt="{{ $event->title }}"
                  class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">

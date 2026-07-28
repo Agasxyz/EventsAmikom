@@ -16,7 +16,7 @@
         <!-- Left: Poster -->
         <div class="lg:col-span-1">
             <div class="sticky top-32">
-            <img src="{{ ($event->poster_path && Storage::disk('public')->exists($event->poster_path))
+            <img src="{{ ($event->poster_path && file_exists(public_path('storage/' . $event->poster_path)))
                   ? asset('storage/' . $event->poster_path)
                   : 'https://placehold.co/200x600' }}" alt="{{ $event->title }}" class="w-full rounded-[2.5rem] shadow-2xl border-8 border-white object-cover aspect-[3/4]">
 
