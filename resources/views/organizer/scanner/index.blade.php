@@ -234,7 +234,11 @@
 
 <script>
     let html5QrCode = null;
+    let cameras = [];
+    let currentCameraIndex = 0;
+    let isUsingDeviceId = false;
     let currentFacingMode = 'environment'; // 'environment' = kamera belakang, 'user' = kamera depan
+    
     const scannerPlaceholder = document.getElementById('scanner-placeholder');
     const btnStopScan = document.getElementById('btn-stop-scan');
     const btnFlipCamera = document.getElementById('btn-flip-camera');
@@ -243,10 +247,7 @@
 
     function updateCameraList() {}
 
-    function startScanning(facingMode) {
-        facingMode = facingMode || currentFacingMode;
-        currentFacingMode = facingMode;
-
+    function startScanning(facingOrId) {
         // Sembunyikan placeholder dengan fade out
         scannerPlaceholder.style.opacity = '0';
         setTimeout(() => { scannerPlaceholder.style.display = 'none'; }, 300);
@@ -271,8 +272,25 @@
             }
         };
 
+        // Tentukan target kamera (facingMode atau Device ID spesifik)
+        let cameraTarget;
+        if (facingOrId) {
+            if (facingOrId === 'user' || facingOrId === 'environment') {
+                cameraTarget = { facingMode: facingOrId };
+                currentFacingMode = facingOrId;
+                isUsingDeviceId = false;
+            } else {
+                cameraTarget = facingOrId; // Menggunakan Device ID spesifik
+                isUsingDeviceId = true;
+            }
+        } else {
+            // Default awal menggunakan kamera belakang
+            cameraTarget = { facingMode: currentFacingMode };
+            isUsingDeviceId = false;
+        }
+
         html5QrCode.start(
-            { facingMode: currentFacingMode },
+            cameraTarget,
             config,
             (decodedText, decodedResult) => {
                 stopScanning();
@@ -282,9 +300,37 @@
         ).then(() => {
             btnStopScan.disabled = false;
             document.getElementById('laser-line').classList.remove('hidden');
-            // Tampilkan tombol flip kamera
-            btnFlipCamera.classList.remove('hidden');
-            btnFlipCamera.classList.add('flex');
+            
+            // Ambil daftar kamera fisik setelah izin akses diberikan oleh user
+            Html5Qrcode.getCameras().then(devices => {
+                cameras = devices;
+                if (cameras && cameras.length > 1) {
+                    btnFlipCamera.classList.remove('hidden');
+                    btnFlipCamera.classList.add('flex');
+                    
+                    // Jika baru aktif lewat facingMode, cari index kamera aktif saat ini di list devices
+                    if (!isUsingDeviceId) {
+                        let searchLabel = currentFacingMode === 'environment' 
+                            ? ['back', 'rear', 'environment', 'belakang', 'main'] 
+                            : ['front', 'selfie', 'user', 'depan'];
+                        let matchedIndex = cameras.findIndex(cam => 
+                            searchLabel.some(label => cam.label.toLowerCase().includes(label))
+                        );
+                        if (matchedIndex !== -1) {
+                            currentCameraIndex = matchedIndex;
+                        }
+                    }
+                } else {
+                    // Hanya ada 1 kamera, sembunyikan tombol flip
+                    btnFlipCamera.classList.add('hidden');
+                    btnFlipCamera.classList.remove('flex');
+                }
+            }).catch(e => {
+                console.warn("Gagal mendeteksi daftar kamera:", e);
+                // Fallback tetap tampilkan tombol flip menggunakan facingMode
+                btnFlipCamera.classList.remove('hidden');
+                btnFlipCamera.classList.add('flex');
+            });
         }).catch(err => {
             console.error("Gagal menjalankan kamera: ", err);
             alert("Gagal mengakses kamera. Mohon berikan izin kamera pada browser Anda (klik ikon gembok di sebelah alamat URL).");
@@ -293,17 +339,33 @@
     }
 
     async function flipCamera() {
-        // Toggle facing mode
-        const nextFacing = currentFacingMode === 'environment' ? 'user' : 'environment';
         btnFlipCamera.disabled = true;
         btnFlipCamera.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Mengganti...`;
+        
         try {
             await html5QrCode.stop();
             html5QrCode = null;
             document.getElementById('laser-line').classList.add('hidden');
-            startScanning(nextFacing);
+            
+            if (cameras && cameras.length > 1) {
+                // Bergantian antar kamera di list devices (kamera belakang 1, belakang 2, depan, dst)
+                currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
+                const nextCameraId = cameras[currentCameraIndex].id;
+                startScanning(nextCameraId);
+            } else {
+                // Fallback toggle menggunakan facingMode jika list devices gagal dimuat
+                const nextFacing = currentFacingMode === 'environment' ? 'user' : 'environment';
+                startScanning(nextFacing);
+            }
         } catch(e) {
             console.error('Gagal ganti kamera:', e);
+            // Fallback darurat jika transisi deviceId error
+            try {
+                const nextFacing = currentFacingMode === 'environment' ? 'user' : 'environment';
+                startScanning(nextFacing);
+            } catch (err2) {
+                alert("Gagal beralih kamera.");
+            }
         } finally {
             btnFlipCamera.disabled = false;
             btnFlipCamera.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Balik Kamera`;
