@@ -250,100 +250,114 @@
         scannerPlaceholder.style.opacity = '0';
         setTimeout(() => { scannerPlaceholder.style.display = 'none'; }, 300);
 
-        // Ambil daftar kamera fisik terlebih dahulu
-        Html5Qrcode.getCameras().then(devices => {
-            cameras = devices;
-            if (!cameras || cameras.length === 0) {
-                alert("Tidak ada kamera yang terdeteksi.");
-                resetScannerUI();
-                return;
+        html5QrCode = new Html5Qrcode("reader");
+
+        const config = {
+            fps: 15,
+            aspectRatio: 1.0,
+            qrbox: function(width, height) {
+                const minEdge = Math.min(width, height);
+                const qrboxSize = Math.floor(minEdge * 0.7);
+                return { width: qrboxSize, height: qrboxSize };
+            },
+            videoConstraints: {
+                width: { ideal: 720 },
+                height: { ideal: 720 },
+                aspectRatio: { ideal: 1.0 }
+            },
+            experimentalFeatures: {
+                useBarCodeDetectorIfSupported: false
             }
+        };
 
-            html5QrCode = new Html5Qrcode("reader");
-
-            const config = {
-                fps: 15,
-                aspectRatio: 1.0,
-                qrbox: function(width, height) {
-                    const minEdge = Math.min(width, height);
-                    const qrboxSize = Math.floor(minEdge * 0.7);
-                    return { width: qrboxSize, height: qrboxSize };
-                },
-                videoConstraints: {
-                    width: { ideal: 720 },
-                    height: { ideal: 720 },
-                    aspectRatio: { ideal: 1.0 }
-                },
-                experimentalFeatures: {
-                    useBarCodeDetectorIfSupported: false
-                }
-            };
-
-            // Cari kamera belakang (back/rear/belakang) secara default
-            let backCamIndex = cameras.findIndex(cam => {
-                const label = cam.label.toLowerCase();
-                return label.includes('back') || label.includes('rear') || label.includes('environment') || label.includes('belakang') || label.includes('main');
-            });
-
-            // Gunakan kamera belakang jika ada, jika tidak ada gunakan kamera pertama (indeks 0)
-            if (backCamIndex !== -1) {
-                currentCameraIndex = backCamIndex;
-            } else {
-                currentCameraIndex = 0;
-            }
-
-            const targetCameraId = cameras[currentCameraIndex].id;
-
-            html5QrCode.start(
-                targetCameraId,
+        // Mulai dengan memaksa kamera belakang (environment) agar memicu popup izin akses kamera
+        html5QrCode.start(
+            { facingMode: { exact: "environment" } },
+            config,
+            (decodedText, decodedResult) => {
+                stopScanning();
+                processCheckIn(decodedText);
+            },
+            (errorMessage) => {}
+        ).catch(err => {
+            console.warn("Gagal force kamera belakang dengan exact constraint, mencoba mode standard...", err);
+            // Fallback 1: Coba jalankan kamera belakang standard (tanpa exact constraint)
+            return html5QrCode.start(
+                { facingMode: "environment" },
                 config,
                 (decodedText, decodedResult) => {
                     stopScanning();
                     processCheckIn(decodedText);
                 },
                 (errorMessage) => {}
-            ).then(() => {
-                btnStopScan.disabled = false;
-                document.getElementById('laser-line').classList.remove('hidden');
+            );
+        }).catch(err2 => {
+            console.warn("Gagal kamera belakang standard, mencoba kamera default apa saja...", err2);
+            // Fallback 2: Jalankan kamera apa saja yang tersedia (biasanya kamera depan)
+            return html5QrCode.start(
+                { facingMode: "user" },
+                config,
+                (decodedText, decodedResult) => {
+                    stopScanning();
+                    processCheckIn(decodedText);
+                },
+                (errorMessage) => {}
+            );
+        }).then(() => {
+            btnStopScan.disabled = false;
+            document.getElementById('laser-line').classList.remove('hidden');
+            
+            // Setelah kamera aktif (izin sudah diberikan), panggil getCameras untuk membaca label kamera fisik asli
+            return Html5Qrcode.getCameras();
+        }).then(devices => {
+            cameras = devices;
+            
+            if (cameras && cameras.length > 1) {
+                btnFlipCamera.classList.remove('hidden');
+                btnFlipCamera.classList.add('flex');
                 
-                // Tampilkan tombol flip jika terdeteksi lebih dari satu kamera
-                if (cameras.length > 1) {
-                    btnFlipCamera.classList.remove('hidden');
-                    btnFlipCamera.classList.add('flex');
+                // Cari kamera yang sedang aktif dalam list untuk menentukan currentCameraIndex awal
+                // Kita tebak berdasarkan label kameranya
+                let searchLabel = ['back', 'rear', 'environment', 'belakang', 'main', 'camera 0'];
+                let matchedIndex = cameras.findIndex(cam => 
+                    searchLabel.some(label => cam.label.toLowerCase().includes(label))
+                );
+                if (matchedIndex !== -1) {
+                    currentCameraIndex = matchedIndex;
                 } else {
-                    btnFlipCamera.classList.add('hidden');
-                    btnFlipCamera.classList.remove('flex');
+                    currentCameraIndex = 0;
                 }
-            }).catch(err => {
-                console.error("Gagal menjalankan kamera: ", err);
-                alert("Gagal mengaktifkan kamera. Pastikan izin kamera sudah diberikan.");
-                resetScannerUI();
-            });
-
+            } else {
+                btnFlipCamera.classList.add('hidden');
+                btnFlipCamera.classList.remove('flex');
+            }
         }).catch(err => {
-            console.error("Gagal mendapatkan daftar kamera: ", err);
+            console.error("Gagal memulai scanner: ", err);
             alert("Gagal mengakses kamera. Mohon berikan izin kamera pada browser Anda (klik ikon gembok di sebelah alamat URL).");
             resetScannerUI();
         });
     }
 
     async function flipCamera() {
-        if (!cameras || cameras.length <= 1) return;
+        if (!cameras || cameras.length <= 1) {
+            alert("Hanya ada 1 kamera yang terdeteksi.");
+            return;
+        }
 
         btnFlipCamera.disabled = true;
         btnFlipCamera.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Mengganti...`;
         
         try {
-            // Stop stream kamera saat ini
+            // Hentikan kamera aktif saat ini
             await html5QrCode.stop();
             html5QrCode = null;
             document.getElementById('laser-line').classList.add('hidden');
             
-            // Pilih indeks kamera berikutnya
+            // Geser index ke kamera fisik selanjutnya
             currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
             const nextCameraId = cameras[currentCameraIndex].id;
 
-            // Inisialisasi ulang scanner dengan device ID baru
+            // Jalankan ulang scanner menggunakan Device ID fisik yang dituju
             html5QrCode = new Html5Qrcode("reader");
             const config = {
                 fps: 15,
