@@ -15,7 +15,7 @@
 /node_modules
 /public/build
 /public/hot
-/public/storage
+# /public/storage — dibiarkan agar folder terdeploy ke Vercel (read-only filesystem)
 /storage/*.key
 /storage/pail
 /vendor
