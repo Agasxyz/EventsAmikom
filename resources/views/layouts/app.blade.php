@@ -11,15 +11,16 @@
     <style>
         html {
             scroll-behavior: smooth;
-            overflow-x: hidden;
+            overflow-x: clip; /* clip = tidak buat scroll container, sticky tetap bekerja */
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            overflow-x: hidden;
+            overflow-x: clip;
         }
         .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px); /* Safari support */
         }
         /* Mobile menu slide-in */
         #mobile-menu {
