@@ -48,15 +48,13 @@
             <span class="text-lg font-bold tracking-tight">AmikomEventHub</span>
         </a>
 
-        {{-- Desktop Nav Links --}}
-        <div class="hidden md:flex items-center gap-6 font-medium">
-            <a href="{{ route('home') }}#events" class="hover:text-indigo-600 transition">Jelajahi</a>
-            <a href="{{ route('categories') }}" class="hover:text-indigo-600 transition">Kategori</a>
-            <a href="{{ route('about') }}" class="hover:text-indigo-600 transition">Tentang Kami</a>
-        </div>
+        {{-- Desktop Nav Links + Auth (grouped right) --}}
+        <div class="hidden md:flex items-center gap-8">
+            <a href="{{ route('home') }}#events" class="font-medium hover:text-indigo-600 transition">Jelajahi</a>
+            <a href="{{ route('categories') }}" class="font-medium hover:text-indigo-600 transition">Kategori</a>
+            <a href="{{ route('about') }}" class="font-medium hover:text-indigo-600 transition">Tentang Kami</a>
 
-        {{-- Desktop Auth --}}
-        <div class="hidden md:flex items-center gap-3">
+            <div class="flex items-center gap-3">
             @auth
                 <div class="flex items-center gap-3">
                     @if(auth()->user()->isOrganizer() && auth()->user()->organization && auth()->user()->organization->status === 'active')
@@ -84,7 +82,8 @@
                     Login
                 </a>
             @endauth
-        </div>
+            </div>{{-- end auth --}}
+        </div>{{-- end right group --}}
 
         {{-- Mobile: Right side (avatar or login + hamburger) --}}
         <div class="flex md:hidden items-center gap-2">
