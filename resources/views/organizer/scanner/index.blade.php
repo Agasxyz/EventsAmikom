@@ -236,8 +236,6 @@
     let html5QrCode = null;
     let cameras = [];
     let currentCameraIndex = 0;
-    let isUsingDeviceId = false;
-    let currentFacingMode = 'environment'; // 'environment' = kamera belakang, 'user' = kamera depan
     
     const scannerPlaceholder = document.getElementById('scanner-placeholder');
     const btnStopScan = document.getElementById('btn-stop-scan');
@@ -247,125 +245,136 @@
 
     function updateCameraList() {}
 
-    function startScanning(facingOrId) {
+    function startScanning() {
         // Sembunyikan placeholder dengan fade out
         scannerPlaceholder.style.opacity = '0';
         setTimeout(() => { scannerPlaceholder.style.display = 'none'; }, 300);
 
-        html5QrCode = new Html5Qrcode("reader");
-
-        const config = {
-            fps: 15,
-            aspectRatio: 1.0,
-            qrbox: function(width, height) {
-                const minEdge = Math.min(width, height);
-                const qrboxSize = Math.floor(minEdge * 0.7);
-                return { width: qrboxSize, height: qrboxSize };
-            },
-            videoConstraints: {
-                width: { ideal: 720 },
-                height: { ideal: 720 },
-                aspectRatio: { ideal: 1.0 }
-            },
-            experimentalFeatures: {
-                useBarCodeDetectorIfSupported: false
+        // Ambil daftar kamera fisik terlebih dahulu
+        Html5Qrcode.getCameras().then(devices => {
+            cameras = devices;
+            if (!cameras || cameras.length === 0) {
+                alert("Tidak ada kamera yang terdeteksi.");
+                resetScannerUI();
+                return;
             }
-        };
 
-        // Tentukan target kamera (facingMode atau Device ID spesifik)
-        let cameraTarget;
-        if (facingOrId) {
-            if (facingOrId === 'user' || facingOrId === 'environment') {
-                cameraTarget = { facingMode: facingOrId };
-                currentFacingMode = facingOrId;
-                isUsingDeviceId = false;
+            html5QrCode = new Html5Qrcode("reader");
+
+            const config = {
+                fps: 15,
+                aspectRatio: 1.0,
+                qrbox: function(width, height) {
+                    const minEdge = Math.min(width, height);
+                    const qrboxSize = Math.floor(minEdge * 0.7);
+                    return { width: qrboxSize, height: qrboxSize };
+                },
+                videoConstraints: {
+                    width: { ideal: 720 },
+                    height: { ideal: 720 },
+                    aspectRatio: { ideal: 1.0 }
+                },
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: false
+                }
+            };
+
+            // Cari kamera belakang (back/rear/belakang) secara default
+            let backCamIndex = cameras.findIndex(cam => {
+                const label = cam.label.toLowerCase();
+                return label.includes('back') || label.includes('rear') || label.includes('environment') || label.includes('belakang') || label.includes('main');
+            });
+
+            // Gunakan kamera belakang jika ada, jika tidak ada gunakan kamera pertama (indeks 0)
+            if (backCamIndex !== -1) {
+                currentCameraIndex = backCamIndex;
             } else {
-                cameraTarget = facingOrId; // Menggunakan Device ID spesifik
-                isUsingDeviceId = true;
+                currentCameraIndex = 0;
             }
-        } else {
-            // Default awal menggunakan kamera belakang
-            cameraTarget = { facingMode: currentFacingMode };
-            isUsingDeviceId = false;
-        }
 
-        html5QrCode.start(
-            cameraTarget,
-            config,
-            (decodedText, decodedResult) => {
-                stopScanning();
-                processCheckIn(decodedText);
-            },
-            (errorMessage) => {}
-        ).then(() => {
-            btnStopScan.disabled = false;
-            document.getElementById('laser-line').classList.remove('hidden');
-            
-            // Ambil daftar kamera fisik setelah izin akses diberikan oleh user
-            Html5Qrcode.getCameras().then(devices => {
-                cameras = devices;
-                if (cameras && cameras.length > 1) {
+            const targetCameraId = cameras[currentCameraIndex].id;
+
+            html5QrCode.start(
+                targetCameraId,
+                config,
+                (decodedText, decodedResult) => {
+                    stopScanning();
+                    processCheckIn(decodedText);
+                },
+                (errorMessage) => {}
+            ).then(() => {
+                btnStopScan.disabled = false;
+                document.getElementById('laser-line').classList.remove('hidden');
+                
+                // Tampilkan tombol flip jika terdeteksi lebih dari satu kamera
+                if (cameras.length > 1) {
                     btnFlipCamera.classList.remove('hidden');
                     btnFlipCamera.classList.add('flex');
-                    
-                    // Jika baru aktif lewat facingMode, cari index kamera aktif saat ini di list devices
-                    if (!isUsingDeviceId) {
-                        let searchLabel = currentFacingMode === 'environment' 
-                            ? ['back', 'rear', 'environment', 'belakang', 'main'] 
-                            : ['front', 'selfie', 'user', 'depan'];
-                        let matchedIndex = cameras.findIndex(cam => 
-                            searchLabel.some(label => cam.label.toLowerCase().includes(label))
-                        );
-                        if (matchedIndex !== -1) {
-                            currentCameraIndex = matchedIndex;
-                        }
-                    }
                 } else {
-                    // Hanya ada 1 kamera, sembunyikan tombol flip
                     btnFlipCamera.classList.add('hidden');
                     btnFlipCamera.classList.remove('flex');
                 }
-            }).catch(e => {
-                console.warn("Gagal mendeteksi daftar kamera:", e);
-                // Fallback tetap tampilkan tombol flip menggunakan facingMode
-                btnFlipCamera.classList.remove('hidden');
-                btnFlipCamera.classList.add('flex');
+            }).catch(err => {
+                console.error("Gagal menjalankan kamera: ", err);
+                alert("Gagal mengaktifkan kamera. Pastikan izin kamera sudah diberikan.");
+                resetScannerUI();
             });
+
         }).catch(err => {
-            console.error("Gagal menjalankan kamera: ", err);
+            console.error("Gagal mendapatkan daftar kamera: ", err);
             alert("Gagal mengakses kamera. Mohon berikan izin kamera pada browser Anda (klik ikon gembok di sebelah alamat URL).");
             resetScannerUI();
         });
     }
 
     async function flipCamera() {
+        if (!cameras || cameras.length <= 1) return;
+
         btnFlipCamera.disabled = true;
         btnFlipCamera.innerHTML = `<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Mengganti...`;
         
         try {
+            // Stop stream kamera saat ini
             await html5QrCode.stop();
             html5QrCode = null;
             document.getElementById('laser-line').classList.add('hidden');
             
-            if (cameras && cameras.length > 1) {
-                // Bergantian antar kamera di list devices (kamera belakang 1, belakang 2, depan, dst)
-                currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
-                const nextCameraId = cameras[currentCameraIndex].id;
-                startScanning(nextCameraId);
-            } else {
-                // Fallback toggle menggunakan facingMode jika list devices gagal dimuat
-                const nextFacing = currentFacingMode === 'environment' ? 'user' : 'environment';
-                startScanning(nextFacing);
-            }
+            // Pilih indeks kamera berikutnya
+            currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
+            const nextCameraId = cameras[currentCameraIndex].id;
+
+            // Inisialisasi ulang scanner dengan device ID baru
+            html5QrCode = new Html5Qrcode("reader");
+            const config = {
+                fps: 15,
+                aspectRatio: 1.0,
+                qrbox: function(width, height) {
+                    const minEdge = Math.min(width, height);
+                    const qrboxSize = Math.floor(minEdge * 0.7);
+                    return { width: qrboxSize, height: qrboxSize };
+                },
+                videoConstraints: {
+                    width: { ideal: 720 },
+                    height: { ideal: 720 },
+                    aspectRatio: { ideal: 1.0 }
+                }
+            };
+
+            await html5QrCode.start(
+                nextCameraId,
+                config,
+                (decodedText, decodedResult) => {
+                    stopScanning();
+                    processCheckIn(decodedText);
+                },
+                (errorMessage) => {}
+            );
+
+            document.getElementById('laser-line').classList.remove('hidden');
         } catch(e) {
             console.error('Gagal ganti kamera:', e);
-            // Fallback darurat jika transisi deviceId error
-            try {
-                const nextFacing = currentFacingMode === 'environment' ? 'user' : 'environment';
-                startScanning(nextFacing);
-            } catch (err2) {
-                alert("Gagal beralih kamera.");
-            }
+            alert("Gagal beralih ke kamera berikutnya.");
+            resetScannerUI();
         } finally {
             btnFlipCamera.disabled = false;
             btnFlipCamera.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Balik Kamera`;

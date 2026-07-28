@@ -10,17 +10,16 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void {
+    ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'superadmin' => \App\Http\Middleware\SuperAdminMiddleware::class,
             'organizer' => \App\Http\Middleware\OrganizerMiddleware::class,
         ]);
-    })
 
-    ->withMiddleware(function (Middleware $middleware) {
         $middleware->validateCsrfTokens(except: [
-            '/midtrans/callback', // Mengecualikan route webhook Midtrans dari blokir CSRF
+            'midtrans/callback', // Kecualikan route webhook Midtrans dari blokir CSRF
+            'midtrans/*',
         ]);
     })
     
