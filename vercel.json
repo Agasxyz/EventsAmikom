@@ -27,11 +27,5 @@
             "src": "/(.*)",
             "dest": "/api/index.php"
         }
-    ],
-    "crons": [
-        {
-            "path": "/api/vercel-cron",
-            "schedule": "*/15 * * * *"
-        }
     ]
 }
