@@ -126,3 +126,23 @@ Route::post('/checkout/{event}', [App\Http\Controllers\CheckoutController::class
 Route::get('/payment/{order_id}', [\App\Http\Controllers\CheckoutController::class, 'payment'])->name('checkout.payment');
 Route::get('/success/{order_id}', [\App\Http\Controllers\CheckoutController::class, 'success'])->name('checkout.success');
 Route::post('/midtrans/callback', [\App\Http\Controllers\MidtransWebhookController::class, 'handle']);
+
+// ─────────────────────────────────────────────
+// Vercel Serverless Cronjob
+// ─────────────────────────────────────────────
+Route::get('/api/vercel-cron', function (\Illuminate\Http\Request $request) {
+    $authHeader = $request->header('Authorization');
+    $expectedToken = 'Bearer ' . env('CRON_SECRET');
+    
+    if (!$authHeader || $authHeader !== $expectedToken) {
+        return response()->json(['error' => 'Unauthorized'], 401);
+    }
+
+    \Illuminate\Support\Facades\Artisan::call('schedule:run');
+    
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Scheduler executed successfully.',
+        'output' => \Illuminate\Support\Facades\Artisan::output()
+    ]);
+});

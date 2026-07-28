@@ -19,6 +19,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if ($this->app->environment('production')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         if (class_exists(\App\Models\Category::class)) {
             try {
                 \Illuminate\Support\Facades\View::share('categories', \App\Models\Category::all());
