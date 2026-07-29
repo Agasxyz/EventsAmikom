@@ -20,14 +20,14 @@ class ReviewController extends Controller
 
         $user = Auth::user();
 
-        // 2. Event harus sudah selesai (minimal 1 hari setelah event)
-        if (now()->lt($event->date->addDay())) {
-            return back()->with('error', 'Ulasan hanya dapat diberikan sehari setelah acara selesai.');
+        // 2. Event harus sudah dimulai / selesai
+        if (now()->lt($event->date)) {
+            return back()->with('error', 'Ulasan hanya dapat diberikan setelah acara dimulai.');
         }
 
-        // 3. User harus punya transaksi settled atau success untuk event ini
+        // 3. User harus punya transaksi settled atau success untuk event ini (case-insensitive email)
         $hasTransaction = Transaction::where('event_id', $event->id)
-            ->where('customer_email', $user->email)
+            ->whereRaw('LOWER(customer_email) = ?', [strtolower($user->email)])
             ->whereIn('status', ['settlement', 'success'])
             ->exists();
 

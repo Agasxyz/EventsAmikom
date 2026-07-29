@@ -37,12 +37,12 @@ class EventController extends Controller
                 ->first();
 
             if (!$userReview) {
-                // Event harus sudah selesai minimal 1 hari
-                $eventEnded = now()->gte($event->date->addDay());
+                // Event harus sudah dimulai / selesai
+                $eventEnded = now()->gte($event->date);
 
-                // Harus punya transaksi settlement atau success
+                // Harus punya transaksi settlement atau success (case-insensitive email)
                 $hasTicket = Transaction::where('event_id', $event->id)
-                    ->where('customer_email', $user->email)
+                    ->whereRaw('LOWER(customer_email) = ?', [strtolower($user->email)])
                     ->whereIn('status', ['settlement', 'success'])
                     ->exists();
 
